@@ -1,37 +1,29 @@
-
 import os
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session
+from markupsafe import escape
 
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 app.config['DEBUG'] = True
+app.config['SECRET_KEY'] = os.urandom(24)  # Gunakan secret key untuk keamanan sesi
 
 @app.route("/trustbound-00/BenchmarkTest00031", methods=['GET', 'POST'])
 def benchmark_test():
-    if request.method == 'POST':
-        return handle_request()
     return handle_request()
 
 def handle_request():
-    response = ""
-    param = ""
-    map_values = request.args.to_dict()
+    param = request.args.get("BenchmarkTest00031", "")
 
-    if map_values:
-        values = map_values.get("BenchmarkTest00031")
-        if values:
-            param = values
+    # Simpan di sesi Flask, bukan di request.environ
+    session['userid'] = param  
 
-    request.environ['werkzeug.session'].update({'userid': param})
+    # Escape output untuk mencegah XSS
+    safe_param = escape(param)
 
-    response += f"Item: 'userid' with value: '{encode_for_html(param)}' saved in session."
-    return response
-
-def encode_for_html(value):
-    return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return f"Item: 'userid' with value: '{safe_param}' saved in session."
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template("404.html")
+    return render_template("404.html"), 404  # Tambahkan kode status yang benar
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)

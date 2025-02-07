@@ -1,6 +1,6 @@
 
 import os
-import random
+import secrets
 from flask import Flask, request, render_template, make_response, session
 
 app = Flask(__name__, static_url_path='/static', static_folder='static')
@@ -16,7 +16,7 @@ def benchmark_test():
     response = make_response()
     param = request.args.get("BenchmarkTest00023", "")
 
-    rand = random.random()
+    rand = secrets.randbelow(10**10)
     remember_me_key = str(rand)[2:]  # Trim off the 0. at the front.
 
     user = "Floyd"
@@ -38,7 +38,8 @@ def benchmark_test():
     if found_user:
         response.set_data("Welcome back: " + user + "<br/>")
     else:
-        remember_me = response.set_cookie(cookie_name, remember_me_key, secure=True, httOnly=True, domain=request.host, path=request.path)
+        response.set_cookie('remember_me', value='some_value', secure=True, httponly=True)
+
         session[cookie_name] = remember_me_key
         response.set_data(user + " has been remembered with cookie: " + cookie_name + " whose value is: " + remember_me_key + "<br/>")
 

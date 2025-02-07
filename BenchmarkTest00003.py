@@ -13,7 +13,16 @@ def benchmark_test():
         response = make_response(render_template("BenchmarkTest00003.html"))
         user_cookie = make_response()
         user_cookie.set_cookie('BenchmarkTest00003', 'someSecret', max_age=60 * 3, secure=True, path=request.path, domain=request.host)
-        response.set_cookie('BenchmarkTest00003', value='someSecret', max_age=60 * 3, secure=True, path=request.path, domain=request.host)
+        response.set_cookie(
+            'BenchmarkTest00003', 
+             value='someSecret',
+            max_age=60*3,  # 3 minutes in seconds
+            secure=True,  # Only send cookie over HTTPS
+            httponly=True,  # Prevent JavaScript from accessing the cookie
+            samesite='Strict',  # Restrict cookie to same-site requests
+            path=request.path,  # Limit cookie to the current request path
+            domain=request.host,  # Set domain to the request host (ensure this is correct and narrow)
+        )
 
         return response
 

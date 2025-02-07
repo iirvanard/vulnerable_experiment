@@ -17,23 +17,38 @@ def benchmark_test():
         return benchmark_test_post()
     return benchmark_test_post()
 
+
 def benchmark_test_post():
     response = "text/html;charset=UTF-8"
 
     param = request.headers.get("BenchmarkTest00008", "")
     param = urllib.parse.unquote(param)
 
-    sql = "{call " + param + "}"
+    # Whitelist stored procedures
+    ALLOWED_PROCEDURES = {"safe_proc1", "safe_proc2", "safe_proc3"}
+
+    if param not in ALLOWED_PROCEDURES:
+        return "Invalid procedure name.", 400
 
     try:
         connection = get_sql_connection()
         cursor = connection.cursor()
-        cursor.execute(sql)
+
+        query = "CALL %s"
+        cursor.execute(query, (param,))
+
+
         results = cursor.fetchall()
-        # Implement a function to print results, adapt according to your needs
-        return str(results)  # Replace with actual rendering of results
-    except sqlite3.Error as e:
-        return "Error processing request."
+        return str(results)  # Sesuaikan dengan cara rendering yang diinginkan
+
+    except Exception as e:
+        return f"Error processing request: {str(e)}", 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
